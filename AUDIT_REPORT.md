@@ -124,6 +124,41 @@ day. Ten tests now hold it.
 before submission would bury the real diffs, so CI runs analyze, test and
 validation but no format gate. Worth doing once the store work lands.
 
+### A-12 · BLOCKER · fixed
+**A release build would have had no network access.**
+`android/app/src/main/AndroidManifest.xml`
+
+`android.permission.INTERNET` was declared only in the **debug** and
+**profile** manifests, which is what Flutter generates. The main manifest
+had no `uses-permission` at all, so a release APK could have shipped unable
+to reach anything: Live Markets, the Daily Pivot's strike and resolution,
+Time Machine lookups, Custom Simulations — and RevenueCat, meaning no
+prices on the paywall and no purchases. Only the bundled-data campaign
+would have worked.
+
+A plugin's manifest may contribute the permission during merge, but relying
+on that is fragile: a dependency change would silently kill networking in
+release. **Fixed:** declared explicitly in the main manifest.
+**Verification:** pending, from the merged manifest of a release build and
+an install on the emulator.
+
+### A-13 · INFORMATIONAL · verified correct
+**Corrupt stored data does not crash startup.** Both `progress_service.dart`
+and `run_history_service.dart` already wrap `jsonDecode` in a try/catch and
+start clean, and their keys carry a `.v1` suffix, which is a migration path:
+bump the suffix and old data is ignored rather than misread. The 1.8 concern
+was unfounded.
+
+Note: the keys keep the legacy `mn.` prefix from the Market Nerve name.
+Harmless, and renaming them would wipe every existing player's progress, so
+they should stay.
+
+### Correction to this report
+An earlier version said "no Android SDK in this environment". That was
+wrong and unverified: the SDK is at `%LOCALAPPDATA%\Android\Sdk`, with adb,
+an emulator and a `Medium_Phone` AVD (API 37). Release builds and on-device
+testing are possible here, and are now in progress.
+
 ## Not yet audited
 
 Listed honestly rather than left silent. None is known to be broken; none
@@ -138,7 +173,6 @@ has been checked in this pass.
   simulation (2.8). The clock itself is now verified — see A-10.
 - Time Machine maths (1.5, 2.7) against high-precision recomputation.
 - Live Markets (1.6): Yahoo 401/429/schema changes, currency mixing.
-- Persistence schema versioning and corrupt-JSON startup (1.8).
 - Accessibility (1.10): text scaling, small screens, tap targets.
 - Endless and Custom Simulation validation (2.5, 2.6).
 - Nerve Profile axis correlation (2.4).

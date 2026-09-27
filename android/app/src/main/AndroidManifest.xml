@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Live Markets, the Daily Pivot, Time Machine and Custom
+         Simulations all fetch prices, and RevenueCat has to reach its
+         backend for offerings and entitlements. Flutter only adds this
+         to the debug and profile manifests, so without it here a
+         release build would have had no network at all. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:label="HistoX"
         android:name="${applicationName}"
