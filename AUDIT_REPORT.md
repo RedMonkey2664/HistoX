@@ -159,6 +159,50 @@ wrong and unverified: the SDK is at `%LOCALAPPDATA%\Android\Sdk`, with adb,
 an emulator and a `Medium_Phone` AVD (API 37). Release builds and on-device
 testing are possible here, and are now in progress.
 
+### A-14 · BLOCKER · fixed
+**The release build could not be produced on an ordinary machine.**
+`android/gradle.properties`
+
+Gradle was configured for an 8 GB heap plus 4 GB metaspace. On a 16 GB
+laptop with an emulator running — an ordinary way to build and test this
+app — the daemon was killed mid-build and `assembleRelease` failed. CI
+runners would have hit the same wall. Lowered to 3 GB / 1 GB, which builds
+fine.
+
+Worth noting how it presented: `flutter build` reported the Gradle failure,
+but piping it through `tail` made the shell report exit code 0. A failed
+release build can look like a successful one.
+
+### A-15 · MINOR · needs owner decision
+**The release APK is 59.6 MB**, which is large for this app and near the
+size where install conversion starts to suffer. Most of it is the bundled
+level data and the mascot clips. Shipping an **AAB** (`flutter build
+appbundle`) rather than a universal APK would cut the download
+substantially, since Play then splits per ABI. Recommended before
+submission.
+
+## On-device verification (Android emulator, API 37)
+
+Everything below was run against the **release** APK installed on a
+`Medium_Phone` emulator, not a debug build and not the web preview.
+
+| Check | Result |
+|---|---|
+| `flutter build apk --release` | builds, 59.6 MB |
+| INTERNET in the installed app | **granted** — A-12 verified end to end |
+| Cold launch | no crash; `logcat -b crash` clean |
+| Onboarding | all three slides, disclaimer copy present |
+| Daily Pivot | live countdown to 09:00 IST, correct against device time |
+| "Discipline points, not money" label | present |
+| Pro node tapped | paywall opens |
+| **Preview unlock in release** | **absent** — A-1 verified end to end |
+| Store state | "STORE NOT CONNECTED IN THIS BUILD", CONTINUE disabled |
+| Renewal wording | present |
+| Terms / Privacy links | open an external browser (`url_launcher` works) |
+| Paywall dismissed | Pro levels remain locked; no bypass |
+
+The two blockers are now proven fixed on a device, not just in code.
+
 ## Not yet audited
 
 Listed honestly rather than left silent. None is known to be broken; none
@@ -197,7 +241,7 @@ has been checked in this pass.
 | `flutter test` | 208 passing |
 | `bash tool/validation/run_all.sh` | 17 levels, 0 data problems; report byte-identical to the committed one |
 | `bash tool/publish_web.sh` | builds, 24 MB, includes `/privacy.html` and `/terms.html` |
-| `flutter build apk --release` | **not run** — no Android SDK in this environment |
+| `flutter build apk --release` | builds (after A-14); installed and exercised on an emulator |
 | `flutter build ios` | **not run** — needs a Mac |
 
 ## Tally
