@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/admin_mode.dart';
+
 /// The Pro subscription, behind one small interface (MONETIZATION.md).
 ///
 /// The live implementation is RevenueCat (`revenuecat_service.dart`),
@@ -96,11 +98,19 @@ class StoreNotConnectedService implements PurchasesService {
 
 /// Whether this build may grant Pro without a store.
 ///
-/// Debug and profile only. A release build with no RevenueCat key would
-/// otherwise fall back to [StoreNotConnectedService], show the preview
-/// button and hand every paying feature away for free — the whole campaign
-/// and the full Nerve Profile — to anyone who installed it.
-const bool kPreviewUnlockAllowed = !kReleaseMode;
+/// Two cases, and the difference matters:
+///
+///   * **Debug and profile** — yes. Developing against a locked paywall is
+///     pointless.
+///   * **Release on a phone** — never. That build goes to a store, and with
+///     no RevenueCat key it falls back to [StoreNotConnectedService]; the
+///     button would hand the whole Pro campaign and the full Nerve Profile
+///     to anyone who installed it.
+///   * **Release on the web** — yes, because the web build *is* the public
+///     demo and there is nothing to sell on it. [ProAccessNotifier.
+///     unlockPreview] still refuses whenever a store is connected, so if
+///     RevenueCat Web Billing is ever configured the door shuts by itself.
+const bool kPreviewUnlockAllowed = !kReleaseMode || kIsWeb;
 
 final Provider<PurchasesService> purchasesServiceProvider =
     Provider<PurchasesService>((Ref ref) => const StoreNotConnectedService());
@@ -163,6 +173,21 @@ class ProAccessNotifier extends Notifier<ProAccess> {
     if (!kPreviewUnlockAllowed) return;
     if (ref.read(purchasesServiceProvider).isConfigured) return;
     state = ProAccess(purchased: state.purchased, previewUnlocked: true);
+  }
+
+  /// Admin panel only ([AdminMode]). Separate from [unlockPreview] on
+  /// purpose: that one is the preview-build affordance and stays shut in
+  /// release, and this one must not be able to prop it open.
+  void unlockForAdmin() {
+    if (!AdminMode.enabled) return;
+    state = ProAccess(purchased: state.purchased, previewUnlocked: true);
+  }
+
+  /// Admin panel only: drops a session unlock without touching a real
+  /// entitlement, so the locked state can be re-checked.
+  void relockForAdmin() {
+    if (!AdminMode.enabled) return;
+    state = ProAccess(purchased: false, previewUnlocked: false);
   }
 
   void markPurchased() => state = ProAccess(

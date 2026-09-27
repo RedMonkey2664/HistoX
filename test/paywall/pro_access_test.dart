@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:histox/app/admin_mode.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:histox/core/services/purchases_service.dart';
@@ -100,7 +101,9 @@ void main() {
     // The guard is a compile-time constant, so this locks its definition:
     // if someone loosens it, a release build shipped without RevenueCat keys
     // would hand the whole campaign and the full profile away for free.
-    expect(kPreviewUnlockAllowed, !kReleaseMode);
+    // Web is the public demo and has nothing to sell, so it keeps the
+    // unlock; a phone release build must never have it.
+    expect(kPreviewUnlockAllowed, !kReleaseMode || kIsWeb);
   });
 
   test('the preview unlock is refused once a store is connected', () {
@@ -113,6 +116,35 @@ void main() {
 
     c.read(proAccessProvider.notifier).unlockPreview();
     expect(c.read(proAccessProvider).previewUnlocked, isFalse);
+    expect(c.read(proAccessProvider).hasPro, isFalse);
+  });
+
+  test('admin mode is off in a release build unless forced at build time', () {
+    // Same shape of guard as the preview unlock: if this ever becomes true
+    // in release by default, the settings sheet hands out every Pro level.
+    expect(AdminMode.enabled, !kReleaseMode || AdminMode.isForcedIntoRelease);
+    expect(AdminMode.isForcedIntoRelease, isFalse,
+        reason: 'tests must not run with HISTOX_ADMIN forced on');
+  });
+
+  test('the admin unlock is a separate door from the preview unlock', () {
+    final ProviderContainer c = ProviderContainer(
+      overrides: [
+        purchasesServiceProvider.overrideWithValue(_ConnectedStore()),
+      ],
+    );
+    addTearDown(c.dispose);
+
+    // With a store connected the preview affordance stays shut...
+    c.read(proAccessProvider.notifier).unlockPreview();
+    expect(c.read(proAccessProvider).hasPro, isFalse);
+
+    // ...while admin still works, because it is for testing the locked and
+    // unlocked states on a build that has a store.
+    c.read(proAccessProvider.notifier).unlockForAdmin();
+    expect(c.read(proAccessProvider).hasPro, isTrue);
+
+    c.read(proAccessProvider.notifier).relockForAdmin();
     expect(c.read(proAccessProvider).hasPro, isFalse);
   });
 }

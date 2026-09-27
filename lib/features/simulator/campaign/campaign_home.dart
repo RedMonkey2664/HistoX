@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/admin_mode.dart';
 import '../../../app/theme.dart';
+import '../../admin/admin_screen.dart';
 import '../../../app/widgets/mascot.dart';
 import '../../../app/widgets/feed_state.dart';
 import '../../../app/widgets/hud.dart';
@@ -220,6 +222,12 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
       builder: (BuildContext sheetContext) => _RunSettingsSheet(
         mode: _mode,
         onMode: (SimulationMode m) => setState(() => _mode = m),
+        onAdmin: () {
+          Navigator.of(sheetContext).pop();
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const AdminScreen()),
+          );
+        },
         onEndless: () {
           Navigator.of(sheetContext).pop();
           Navigator.of(context).push(
@@ -718,6 +726,7 @@ class _RunSettingsSheet extends StatefulWidget {
     required this.mode,
     required this.onMode,
     required this.onEndless,
+    required this.onAdmin,
     required this.onDevRun,
   });
 
@@ -727,6 +736,10 @@ class _RunSettingsSheet extends StatefulWidget {
   /// Endless is a way of playing rather than a mission, so it sits with the
   /// mode switch instead of on the map (see [CampaignHome]).
   final VoidCallback onEndless;
+
+  /// Debug and profile builds only, unless a release build was made with
+  /// --dart-define=HISTOX_ADMIN=true (see [AdminMode]).
+  final VoidCallback onAdmin;
   final VoidCallback onDevRun;
 
   @override
@@ -776,6 +789,20 @@ class _RunSettingsSheetState extends State<_RunSettingsSheet> {
               letterSpacingEm: 0.18,
               onPressed: widget.onEndless,
             ),
+            if (AdminMode.enabled) ...<Widget>[
+              const SizedBox(height: AppSpacing.lg),
+              Text('ADMIN', style: AppText.label(size: 11)),
+              const SizedBox(height: AppSpacing.sm + 2),
+              HudButton(
+                label: 'ADMIN PANEL',
+                subtitle: 'EVERYTHING UNLOCKED, FOR TESTING',
+                style: HudButtonStyle.ghost,
+                height: 52,
+                fontSize: 14,
+                letterSpacingEm: 0.18,
+                onPressed: widget.onAdmin,
+              ),
+            ],
             const SizedBox(height: AppSpacing.lg),
             Text('DEVELOPMENT', style: AppText.label(size: 11)),
             const SizedBox(height: AppSpacing.sm + 2),

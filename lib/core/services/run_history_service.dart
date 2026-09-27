@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../app/admin_mode.dart';
 import 'progress_service.dart' show sharedPreferencesProvider;
 
 /// One behavioural sample from a run: a moment where the player's nerve was
@@ -161,6 +162,14 @@ final NotifierProvider<RunHistoryNotifier, List<RunRecord>> runHistoryProvider =
 class RunHistoryNotifier extends Notifier<List<RunRecord>> {
   @override
   List<RunRecord> build() => ref.watch(runHistoryServiceProvider).load();
+
+  /// Admin panel only ([AdminMode]): forgets every recorded run, so the
+  /// Debrief's pattern panel and the Nerve Profile can be seen from empty.
+  Future<void> resetForAdmin() async {
+    if (!AdminMode.enabled) return;
+    state = const <RunRecord>[];
+    await ref.read(runHistoryServiceProvider).save(state);
+  }
 
   Future<void> add(RunRecord run) async {
     final List<RunRecord> next = <RunRecord>[...state, run];

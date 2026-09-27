@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/admin_mode.dart';
 import '../../app/theme.dart';
 import '../../app/widgets/mascot.dart';
 import '../../core/services/progress_service.dart';
@@ -18,6 +19,13 @@ class OnboardingNotifier extends Notifier<bool> {
   Future<void> complete() async {
     state = true;
     await ref.read(sharedPreferencesProvider).setBool(_key, true);
+  }
+
+  /// Admin panel only ([AdminMode]): show the first-launch flow again.
+  Future<void> replayForAdmin() async {
+    if (!AdminMode.enabled) return;
+    state = false;
+    await ref.read(sharedPreferencesProvider).setBool(_key, false);
   }
 }
 

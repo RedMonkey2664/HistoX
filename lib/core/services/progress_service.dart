@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../app/admin_mode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/simulator/engine/simulation_mode.dart';
@@ -198,6 +200,19 @@ class ProgressNotifier extends Notifier<ProgressState> {
       pivotBonusPoints: state.pivotBonusPoints,
     );
 
+    await ref.read(progressServiceProvider).save(state);
+  }
+
+  /// Admin panel only ([AdminMode]): wipes campaign progress and points.
+  ///
+  /// The same path a first install takes, so it also exercises the empty
+  /// states rather than only the seeded ones.
+  Future<void> resetForAdmin() async {
+    if (!AdminMode.enabled) return;
+    state = const ProgressState(
+      levels: <String, LevelProgress>{},
+      pivotBonusPoints: 0,
+    );
     await ref.read(progressServiceProvider).save(state);
   }
 
