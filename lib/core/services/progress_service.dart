@@ -203,6 +203,36 @@ class ProgressNotifier extends Notifier<ProgressState> {
     await ref.read(progressServiceProvider).save(state);
   }
 
+  /// Admin panel only ([AdminMode]): marks every given level cleared, so the
+  /// campaign map, the stats strip and the profile can be seen at 100%.
+  ///
+  /// The progress it writes is real in shape — `timesPlayed` is what
+  /// [LevelProgress.isCleared] reads, and the score is what the map's stars
+  /// read — but the runs behind it never happened. That is why it lives
+  /// behind the admin gate and says so when it finishes: a screenshot taken
+  /// from this state is a screenshot of synthetic progress.
+  Future<void> completeAllForAdmin(
+    Iterable<String> levelIds, {
+    int score = 100,
+  }) async {
+    if (!AdminMode.enabled) return;
+    state = ProgressState(
+      levels: <String, LevelProgress>{
+        ...state.levels,
+        for (final String id in levelIds)
+          id: LevelProgress(
+            levelId: id,
+            bestScore: score,
+            bestPnl: 0,
+            timesPlayed: 1,
+            modesPlayed: const <String>{'beginner'},
+          ),
+      },
+      pivotBonusPoints: state.pivotBonusPoints,
+    );
+    await ref.read(progressServiceProvider).save(state);
+  }
+
   /// Admin panel only ([AdminMode]): wipes campaign progress and points.
   ///
   /// The same path a first install takes, so it also exercises the empty

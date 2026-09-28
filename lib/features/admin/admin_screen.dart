@@ -119,6 +119,31 @@ class AdminScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
           _Section('DATA'),
           _Action(
+            label: 'UNLOCK EVERYTHING (100% PROGRESS)',
+            onTap: () async {
+              final List<LevelManifestEntry> all = manifest.maybeWhen(
+                data: (List<LevelManifestEntry> l) => l,
+                orElse: () => const <LevelManifestEntry>[],
+              );
+              final List<String> playable = <String>[
+                for (final LevelManifestEntry e in all)
+                  if (e.dataStatus.isPlayable) e.id,
+              ];
+              if (playable.isEmpty) {
+                toast('The level manifest is not loaded yet.');
+                return;
+              }
+              ref.read(proAccessProvider.notifier).unlockForAdmin();
+              await ref
+                  .read(progressProvider.notifier)
+                  .completeAllForAdmin(playable);
+              toast(
+                'Pro unlocked and ${playable.length} levels marked cleared. '
+                'This progress is synthetic.',
+              );
+            },
+          ),
+          _Action(
             label: 'CLEAR CAMPAIGN PROGRESS',
             destructive: true,
             onTap: () async {
