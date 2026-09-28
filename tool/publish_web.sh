@@ -39,7 +39,11 @@ echo "==> Building"
 # TERMS.md, so the app's links and the repo's documents cannot drift.
 "${PYTHON:-python}" tool/build_legal_pages.py
 
-"$FLUTTER" build web --release --no-wasm-dry-run
+# The web build is the public demo, so it carries the admin tools: there is
+# no store on it and judges need a way into the Pro content. A phone release
+# build must never be made with this flag.
+"$FLUTTER" build web --release --no-wasm-dry-run \
+  --dart-define=HISTOX_ADMIN=true
 
 echo "==> Assembling web_dist/"
 rm -rf web_dist

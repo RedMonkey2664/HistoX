@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -61,13 +62,27 @@ class AdminScreen extends ConsumerWidget {
               margin: const EdgeInsets.only(bottom: AppSpacing.lg),
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.down.withValues(alpha: 0.12),
-                border: Border.all(color: AppColors.down),
+                color: (kIsWeb ? AppColors.caution : AppColors.down)
+                    .withValues(alpha: 0.12),
+                border: Border.all(
+                  color: kIsWeb ? AppColors.caution : AppColors.down,
+                ),
               ),
               child: Text(
-                'RELEASE BUILD WITH ADMIN FORCED ON.\nDo not upload this '
-                'build to a store: it can unlock Pro without paying.',
-                style: AppText.body(size: 13, color: AppColors.down),
+                kIsWeb
+                    // The web build is the public demo. Nothing is sold
+                    // on it, so these tools cost nothing here - but
+                    // anyone with the link can use them, and that should
+                    // not be a surprise.
+                    ? 'PUBLIC DEMO BUILD. These tools are open to anyone '
+                          'with the link. Nothing is sold on the web build.'
+                    : 'RELEASE BUILD WITH ADMIN FORCED ON.\nDo not upload '
+                          'this build to a store: it can unlock Pro '
+                          'without paying.',
+                style: AppText.body(
+                  size: 13,
+                  color: kIsWeb ? AppColors.caution : AppColors.down,
+                ),
               ),
             ),
 
