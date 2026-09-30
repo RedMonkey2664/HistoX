@@ -19,8 +19,8 @@ Built for **RevenueCat Shipaton 2026**, submitted to the **Next Gen award**.
 
 Three ways to see it working, fastest first.
 
-1. **Watch the demo video** (90 seconds): <!-- VIDEO_URL -->
-   <https://youtu.be/REPLACE_ME>
+1. **Watch the demo video** (under two minutes): <!-- VIDEO_URL -->
+   <https://www.youtube.com/watch?v=vKt2RZFo40Q>
 2. **Open the web preview**: <https://revenue-cat-rho.vercel.app>.
    The first load after a deploy is slow while the CDN warms; give it a
    moment rather than reloading.
@@ -297,8 +297,8 @@ progress, scores and run history are sample values. Nothing here is a mockup.
 
 ## Demo
 
-- **Demo video (90 seconds):** <!-- VIDEO_URL -->
-  <https://youtu.be/REPLACE_ME>. Shot list in
+- **Demo video (under two minutes):** <!-- VIDEO_URL -->
+  <https://www.youtube.com/watch?v=vKt2RZFo40Q>. Shot list in
   [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md); every shot is the real app and
   the numbers are whatever the run produced.
 - **Web preview:** <https://revenue-cat-rho.vercel.app>. The product
