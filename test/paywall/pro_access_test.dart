@@ -12,7 +12,7 @@ class _ConnectedStore implements PurchasesService {
   bool get isConfigured => true;
 
   @override
-  Future<List<PlanPrice>> prices() async => const <PlanPrice>[];
+  Future<PriceLoad> prices() async => const PriceLoad(PriceStatus.ok);
 
   @override
   Future<bool> purchase(ProPlan plan) async => false;
@@ -63,7 +63,7 @@ void main() {
 
   test('the unconnected store refuses to sell or restore', () async {
     const StoreNotConnectedService store = StoreNotConnectedService();
-    expect(await store.prices(), isEmpty);
+    expect((await store.prices()).hasPrices, isFalse);
     expect(
       store.purchase(ProPlan.yearly),
       throwsA(isA<StoreUnavailableException>()),
@@ -146,5 +146,41 @@ void main() {
 
     c.read(proAccessProvider.notifier).relockForAdmin();
     expect(c.read(proAccessProvider).hasPro, isFalse);
+  });
+
+  group('the paywall is told why there are no prices', () {
+    test('no key in the build reports notConfigured, not an empty list', () async {
+      const StoreNotConnectedService store = StoreNotConnectedService();
+      final PriceLoad load = await store.prices();
+
+      expect(load.status, PriceStatus.notConfigured);
+      expect(load.hasPrices, isFalse);
+      expect(load.message, contains('NOT CONNECTED'));
+    });
+
+    test('each failure says something different', () {
+      // The point of the type: a missing offering, missing products and a
+      // dead network used to be indistinguishable on screen.
+      final List<PriceStatus> failures = <PriceStatus>[
+        for (final PriceStatus s in PriceStatus.values)
+          if (s != PriceStatus.ok) s,
+      ];
+      final Set<String> messages = <String>{
+        for (final PriceStatus s in failures)
+          if (PriceLoad(s).message case final String m) m,
+      };
+
+      expect(messages, hasLength(failures.length));
+      // And "ok with nothing in it" is its own case, not silence.
+      expect(const PriceLoad(PriceStatus.ok).message, isNotNull);
+    });
+
+    test('prices present means no message to show', () {
+      const PriceLoad load = PriceLoad.ok(<PlanPrice>[
+        PlanPrice(plan: ProPlan.yearly, priceLabel: 'Rs 1,499'),
+      ]);
+      expect(load.hasPrices, isTrue);
+      expect(load.message, isNull);
+    });
   });
 }

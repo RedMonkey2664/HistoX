@@ -27,13 +27,36 @@ abstract final class RevenueCatKeys {
   static const String test = String.fromEnvironment('RC_TEST_KEY');
 
   /// The entitlement every Pro gate checks (MONETIZATION.md).
-  static const String entitlement = 'pro';
+  ///
+  /// Configurable because the dashboard is the source of truth and it does
+  /// not have to agree with a constant compiled in here. The HistoX project
+  /// calls it `histox_pro`; get this wrong and a purchase completes, the
+  /// money moves, and `entitlements.active` never contains the key the app
+  /// is looking for — so Pro silently never unlocks.
+  static const String entitlement = String.fromEnvironment(
+    'RC_ENTITLEMENT',
+    defaultValue: 'pro',
+  );
+
+  /// Which key this build is using, named but never shown. Diagnostics may
+  /// say "test store"; they may not print the key.
+  static String describeCurrent() {
+    final String? k = current();
+    if (k == null) return 'none';
+    if (k.startsWith('test_')) return 'test store';
+    if (k.startsWith('appl_')) return 'apple';
+    if (k.startsWith('goog_')) return 'google';
+    return 'configured';
+  }
 
   /// The key for the platform this build is running on, or null.
   static String? current() {
-    // The Test Store never takes real money, so a release build must not
-    // be able to reach it however the build was invoked.
-    if (test.isNotEmpty && !kReleaseMode) return test;
+    // The Test Store never takes real money. A phone release build must not
+    // be able to reach it however it was invoked — that build goes to a
+    // store, where purchases have to be real. The web build is the public
+    // demo and sells nothing, so it may use the Test Store: that is what
+    // lets the demo show the dashboard's real offerings and prices.
+    if (test.isNotEmpty && (!kReleaseMode || kIsWeb)) return test;
     final String key = kIsWeb
         ? web
         : switch (defaultTargetPlatform) {
@@ -49,7 +72,8 @@ abstract final class RevenueCatKeys {
 ///
 /// Maps RevenueCat's current offering onto the paywall's two plans — the
 /// offering's *annual* package is YEARLY and its *monthly* package is
-/// MONTHLY — and reads Pro from the `pro` entitlement. Prices are the store's
+/// MONTHLY — and reads Pro from the [RevenueCatKeys.entitlement]
+/// entitlement. Prices are the store's
 /// own localised strings; nothing here formats a price.
 class RevenueCatPurchasesService implements PurchasesService {
   RevenueCatPurchasesService._() {
@@ -95,11 +119,15 @@ class RevenueCatPurchasesService implements PurchasesService {
       };
 
   @override
-  Future<List<PlanPrice>> prices() async {
+  Future<PriceLoad> prices() async {
     try {
       final Offering? offering = await _offering();
-      if (offering == null) return const <PlanPrice>[];
-      return <PlanPrice>[
+      if (offering == null) {
+        _log('no current offering: set one in the RevenueCat dashboard');
+        return const PriceLoad(PriceStatus.noOffering);
+      }
+
+      final List<PlanPrice> plans = <PlanPrice>[
         for (final ProPlan plan in ProPlan.values)
           if (_packageFor(offering, plan) case final Package p)
             PlanPrice(
@@ -110,10 +138,32 @@ class RevenueCatPurchasesService implements PurchasesService {
                   : null,
             ),
       ];
+
+      _log(
+        'offering "${offering.identifier}" with '
+        '${offering.availablePackages.length} packages; '
+        'annual=${offering.annual?.storeProduct.priceString ?? "-"} '
+        'monthly=${offering.monthly?.storeProduct.priceString ?? "-"}',
+      );
+
+      // An offering with neither package is a dashboard that is not finished:
+      // the products are missing, or the store has not approved them yet.
+      if (plans.isEmpty) return const PriceLoad(PriceStatus.noProducts);
+      return PriceLoad.ok(plans);
     } on PlatformException catch (e) {
-      debugPrint('RevenueCat offerings unavailable: ${e.message}');
-      return const <PlanPrice>[];
+      final PurchasesErrorCode code = PurchasesErrorHelper.getErrorCode(e);
+      _log('offerings failed: $code ${e.message}');
+      return PriceLoad(
+        code == PurchasesErrorCode.networkError
+            ? PriceStatus.networkError
+            : PriceStatus.storeError,
+      );
     }
+  }
+
+  /// Debug-only. Never logs a key, a receipt or anything identifying.
+  void _log(String message) {
+    if (kDebugMode) debugPrint('[RevenueCat] $message');
   }
 
   @override

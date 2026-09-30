@@ -26,11 +26,33 @@ import '../simulator/level/level_screen.dart';
 /// writes a fake score or a fake price: unlocking Pro grants the session
 /// unlock, clearing progress clears the real store, and the level launcher
 /// starts a real run.
-class AdminScreen extends ConsumerWidget {
+class AdminScreen extends ConsumerStatefulWidget {
   const AdminScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AdminScreen> createState() => _AdminScreenState();
+}
+
+class _AdminScreenState extends ConsumerState<AdminScreen> {
+  /// Null until the store has been asked. Asking is the diagnostic: it runs
+  /// the same call the paywall runs, so what shows here is what the paywall
+  /// will get.
+  PriceLoad? _load;
+  bool _asking = false;
+
+  Future<void> _askTheStore() async {
+    setState(() => _asking = true);
+    final PriceLoad load = await ref.read(purchasesServiceProvider).prices();
+    if (mounted) {
+      setState(() {
+        _load = load;
+        _asking = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final ProAccess pro = ref.watch(proAccessProvider);
     final PurchasesService store = ref.watch(purchasesServiceProvider);
     final ProgressState progress = ref.watch(progressProvider);
@@ -86,6 +108,44 @@ class AdminScreen extends ConsumerWidget {
               ),
             ),
 
+          _Section('REVENUECAT'),
+          _Row(
+            'SDK configured',
+            store.isConfigured ? 'yes' : 'no',
+          ),
+          _Row(
+            'Key in this build',
+            RevenueCatKeys.current() == null
+                ? 'none'
+                : RevenueCatKeys.describeCurrent(),
+          ),
+          _Row('Pro entitlement', pro.purchased ? 'active' : 'inactive'),
+          if (_load case final PriceLoad load) ...<Widget>[
+            _Row('Offering', switch (load.status) {
+              PriceStatus.ok => 'found',
+              PriceStatus.noOffering => 'none set as current',
+              PriceStatus.noProducts => 'found, but no packages',
+              PriceStatus.notConfigured => 'not asked: no key',
+              PriceStatus.networkError => 'unreachable',
+              PriceStatus.storeError => 'store refused',
+            }),
+            _Row('Packages priced', '${load.plans.length}'),
+            for (final PlanPrice plan in load.plans)
+              _Row(
+                '  ${plan.plan.name}',
+                plan.perMonthLabel == null
+                    ? plan.priceLabel
+                    : '${plan.priceLabel} (${plan.perMonthLabel}/mo)',
+              ),
+            if (load.message case final String m) _Row('  reported as', m),
+          ],
+          const SizedBox(height: AppSpacing.sm),
+          _Action(
+            label: _asking ? 'ASKING THE STORE...' : 'ASK THE STORE FOR PRICES',
+            onTap: _asking ? () {} : () => _askTheStore(),
+          ),
+
+          const SizedBox(height: AppSpacing.lg),
           _Section('STATE'),
           _Row('Pro access', pro.hasPro ? 'unlocked' : 'locked'),
           _Row('  from a purchase', pro.purchased ? 'yes' : 'no'),

@@ -65,19 +65,22 @@ class PaywallScreen extends ConsumerStatefulWidget {
 
 class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   ProPlan _plan = ProPlan.yearly;
-  List<PlanPrice> _prices = const <PlanPrice>[];
+
+  /// Null while the store is still being asked, so "loading" and "there are
+  /// no prices" are different things on screen.
+  PriceLoad? _load;
   bool _busy = false;
 
   @override
   void initState() {
     super.initState();
-    ref.read(purchasesServiceProvider).prices().then((List<PlanPrice> p) {
-      if (mounted) setState(() => _prices = p);
+    ref.read(purchasesServiceProvider).prices().then((PriceLoad p) {
+      if (mounted) setState(() => _load = p);
     }).ignore();
   }
 
   PlanPrice? _priceFor(ProPlan plan) {
-    for (final PlanPrice p in _prices) {
+    for (final PlanPrice p in _load?.plans ?? const <PlanPrice>[]) {
       if (p.plan == plan) return p;
     }
     return null;
@@ -142,7 +145,13 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     final bool storeReady = store.isConfigured;
     // Never in a release build: see kPreviewUnlockAllowed.
     final bool canPreview = !storeReady && kPreviewUnlockAllowed;
-    final bool pricesLoaded = _prices.isNotEmpty;
+    final bool loading = _load == null;
+    final bool pricesLoaded = _load?.hasPrices ?? false;
+    // One line that says what is actually happening, instead of one message
+    // for a missing key, a missing offering and a dead network alike.
+    final String? statusLine = loading
+        ? 'LOADING PLANS...'
+        : _load?.message;
 
     return Scaffold(
       body: Stack(
@@ -264,14 +273,16 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                     'PRICES LOAD FROM THE STORE · REGION-SPECIFIC',
                     style: AppText.label(size: 10, color: AppColors.textFaint),
                   ),
-                  if (!storeReady) ...<Widget>[
+                  if (statusLine != null) ...<Widget>[
                     const SizedBox(height: AppSpacing.xs + 2),
                     Text(
-                      'STORE NOT CONNECTED IN THIS BUILD',
+                      statusLine,
                       style: AppText.label(
                         size: 10,
                         weight: FontWeight.w600,
-                        color: AppColors.caution,
+                        color: loading
+                            ? AppColors.textFaint
+                            : AppColors.caution,
                       ),
                     ),
                   ],

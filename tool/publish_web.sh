@@ -42,8 +42,20 @@ echo "==> Building"
 # The web build is the public demo, so it carries the admin tools: there is
 # no store on it and judges need a way into the Pro content. A phone release
 # build must never be made with this flag.
+# Keys, when config/revenuecat.json exists. The web demo uses the Test
+# Store key, which returns the dashboard's real offerings and prices but
+# never takes money. The file is gitignored, so a clone without it simply
+# builds a demo with no store, exactly as before.
+RC_CONFIG=""
+if [ -f config/revenuecat.json ]; then
+  RC_CONFIG="--dart-define-from-file=config/revenuecat.json"
+  echo "==> Building with RevenueCat keys from config/revenuecat.json"
+else
+  echo "==> No config/revenuecat.json: building with no store"
+fi
+
 "$FLUTTER" build web --release --no-wasm-dry-run \
-  --dart-define=HISTOX_ADMIN=true
+  --dart-define=HISTOX_ADMIN=true $RC_CONFIG
 
 echo "==> Assembling web_dist/"
 rm -rf web_dist

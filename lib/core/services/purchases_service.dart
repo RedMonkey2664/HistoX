@@ -51,12 +51,64 @@ class StoreUnavailableException implements Exception {
   String toString() => 'The app store is not connected in this build.';
 }
 
+/// Why the paywall has no prices to show.
+///
+/// The paywall used to receive an empty list for every one of these and said
+/// the same thing about all of them, so a missing key, a missing offering and
+/// a dead network were indistinguishable — to the player and to us.
+enum PriceStatus {
+  /// Prices are present.
+  ok,
+
+  /// No RevenueCat key in this build, so there is no store to ask.
+  notConfigured,
+
+  /// Configured, but the dashboard has no *current* offering.
+  noOffering,
+
+  /// A current offering exists but carries neither an annual nor a monthly
+  /// package — usually the products are not attached, or not yet approved by
+  /// the store.
+  noProducts,
+
+  /// The store could not be reached.
+  networkError,
+
+  /// The store refused for some other reason; see the debug log.
+  storeError,
+}
+
+/// What [PurchasesService.prices] found.
+@immutable
+class PriceLoad {
+  const PriceLoad(this.status, [this.plans = const <PlanPrice>[]]);
+
+  const PriceLoad.ok(List<PlanPrice> plans) : this(PriceStatus.ok, plans);
+
+  final PriceStatus status;
+  final List<PlanPrice> plans;
+
+  bool get hasPrices => plans.isNotEmpty;
+
+  /// One line the paywall can show. Null when there are prices to show
+  /// instead.
+  String? get message => switch (status) {
+    PriceStatus.ok => plans.isEmpty ? 'No plans available.' : null,
+    PriceStatus.notConfigured => 'STORE NOT CONNECTED IN THIS BUILD',
+    PriceStatus.noOffering => 'PLANS ARE TEMPORARILY UNAVAILABLE',
+    PriceStatus.noProducts => 'SUBSCRIPTION PRODUCTS ARE UNAVAILABLE',
+    PriceStatus.networkError =>
+      'COULD NOT REACH THE STORE. CHECK YOUR CONNECTION.',
+    PriceStatus.storeError => 'THE STORE COULD NOT BE ASKED FOR PRICES',
+  };
+}
+
 abstract class PurchasesService {
   /// Whether a store is connected in this build.
   bool get isConfigured;
 
-  /// Region-specific prices from the store. Empty when there is no store.
-  Future<List<PlanPrice>> prices();
+  /// Region-specific prices from the store, or why there are none.
+  Future<PriceLoad> prices();
 
   /// Returns whether the purchase completed with the `pro` entitlement.
   Future<bool> purchase(ProPlan plan);
@@ -79,7 +131,8 @@ class StoreNotConnectedService implements PurchasesService {
   bool get isConfigured => false;
 
   @override
-  Future<List<PlanPrice>> prices() async => const <PlanPrice>[];
+  Future<PriceLoad> prices() async =>
+      const PriceLoad(PriceStatus.notConfigured);
 
   @override
   Future<bool> purchase(ProPlan plan) =>
