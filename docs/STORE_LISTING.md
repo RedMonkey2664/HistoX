@@ -114,8 +114,8 @@ no analytics).
 > campaign node marked PRO. The paywall appears immediately; no progress is
 > required.
 >
-> Privacy Policy: https://revenue-cat-redmonkey2664s-projects.vercel.app/privacy.html
-> Terms of Use: https://revenue-cat-redmonkey2664s-projects.vercel.app/terms.html
+> Privacy Policy: https://revenue-cat-rho.vercel.app/privacy.html
+> Terms of Use: https://revenue-cat-rho.vercel.app/terms.html
 
 ## Subscription metadata
 

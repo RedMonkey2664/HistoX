@@ -21,7 +21,7 @@ Three ways to see it working, fastest first.
 
 1. **Watch the demo video** (90 seconds): <!-- VIDEO_URL -->
    <https://youtu.be/REPLACE_ME>
-2. **Open the web preview**: <https://revenue-cat-redmonkey2664s-projects.vercel.app>.
+2. **Open the web preview**: <https://revenue-cat-rho.vercel.app>.
    The first load after a deploy is slow while the CDN warms; give it a
    moment rather than reloading.
 3. **Run it**: `flutter pub get && flutter run`. No keys needed; the store
@@ -301,7 +301,7 @@ progress, scores and run history are sample values. Nothing here is a mockup.
   <https://youtu.be/REPLACE_ME>. Shot list in
   [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md); every shot is the real app and
   the numbers are whatever the run produced.
-- **Web preview:** <https://revenue-cat-redmonkey2664s-projects.vercel.app>. The product
+- **Web preview:** <https://revenue-cat-rho.vercel.app>. The product
   ships on iOS and Android; this is the same app as a web build, with the limits listed
   under [Running locally](#running-locally).
 

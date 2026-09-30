@@ -96,7 +96,7 @@ There is no promo code, because there is no store release to redeem one
 against. The web preview is built with the admin panel on, so every Pro
 level and the full Nerve Profile can be opened without a purchase:
 
-<https://revenue-cat-redmonkey2664s-projects.vercel.app>
+<https://revenue-cat-rho.vercel.app>
 
 The paywall itself is live. It reads its offering, packages and prices from
 the RevenueCat dashboard through the Test Store, so the purchase flow runs
@@ -112,7 +112,7 @@ anyone who lands there. Suggested:
 > crashes and scores your discipline. Flutter, RevenueCat. Shipaton 2026 Next
 > Gen.
 
-Website: `https://revenue-cat-redmonkey2664s-projects.vercel.app`
+Website: `https://revenue-cat-rho.vercel.app`
 
 Topics: `flutter`, `dart`, `revenuecat`, `riverpod`, `fintech`,
 `behavioural-finance`, `shipaton`
