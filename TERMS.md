@@ -76,4 +76,4 @@ date. Continuing to use the app means you accept the updated terms.
 
 ## 8. Contact
 
-<https://github.com/RedMonkey2664/RevenueCat/issues>
+<https://github.com/RedMonkey2664/HistoX/issues>

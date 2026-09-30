@@ -8,7 +8,7 @@ Everything the entry form asks for, and where it is.
 
 | Requirement | Where it is | State |
 |---|---|---|
-| Public repository | <https://github.com/RedMonkey2664/RevenueCat> | done |
+| Public repository | <https://github.com/RedMonkey2664/HistoX> | done |
 | Open-source licence, detectable at the top of the repo page | `LICENSE`, MIT, GitHub shows it in the sidebar | done |
 | RevenueCat SDK powering a purchase | `lib/core/services/revenuecat_service.dart` | done |
 | 1024x1024 app icon | `docs/submission/app_icon_1024.png` | done |

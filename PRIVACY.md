@@ -73,4 +73,4 @@ Material changes to this policy will be published here with a new date.
 ## Contact
 
 Questions: open an issue at
-<https://github.com/RedMonkey2664/RevenueCat/issues>.
+<https://github.com/RedMonkey2664/HistoX/issues>.

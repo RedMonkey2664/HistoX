@@ -134,8 +134,8 @@ You need:
 - A device or emulator
 
 ```sh
-git clone https://github.com/RedMonkey2664/RevenueCat.git
-cd RevenueCat
+git clone https://github.com/RedMonkey2664/HistoX.git
+cd HistoX
 flutter pub get
 ```
 
