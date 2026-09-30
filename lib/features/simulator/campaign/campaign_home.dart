@@ -84,7 +84,9 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                     progress: progress,
                     streak: streak,
                     totalLevels: manifest.maybeWhen(
-                      data: (List<LevelManifestEntry> all) => all.length,
+                      data: (List<LevelManifestEntry> all) => all
+                          .where((LevelManifestEntry e) => e.dataStatus.isPlayable)
+                          .length,
                       orElse: () => 0,
                     ),
                   ),
@@ -146,9 +148,18 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                 ),
               ),
               data: (List<LevelManifestEntry> all) {
+                // Levels with no sourced data are not drawn. A node that can
+                // never open is a dead end on the map: it reads as content
+                // the player has failed to unlock rather than as a level
+                // that does not exist yet. They stay in the manifest, which
+                // is where the plan for them is recorded.
+                final List<LevelManifestEntry> playable = <LevelManifestEntry>[
+                  for (final LevelManifestEntry e in all)
+                    if (e.dataStatus.isPlayable) e,
+                ];
                 final List<LevelManifestEntry> entries = _market == null
-                    ? all
-                    : all
+                    ? playable
+                    : playable
                           .where(
                             (LevelManifestEntry e) => e.assetClass == _market,
                           )
