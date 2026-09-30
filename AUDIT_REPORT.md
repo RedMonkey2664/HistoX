@@ -6,8 +6,9 @@ which regenerates [docs/VALIDATION_REPORT.md](docs/VALIDATION_REPORT.md)
 from the files the app ships.
 
 **This audit is partial.** Phases 0, 1 (security and purchases) and 2
-(level and scoring validation) are done. What has not been done is listed
-under "Not yet audited" so nobody mistakes silence for a pass.
+(level and scoring validation) are done, plus a submission-asset pass
+(A-16, A-17). What has not been done is listed under "Not yet audited" so
+nobody mistakes silence for a pass.
 
 ## Baseline
 
@@ -153,6 +154,43 @@ Note: the keys keep the legacy `mn.` prefix from the Market Nerve name.
 Harmless, and renaming them would wipe every existing player's progress, so
 they should stay.
 
+### A-16 · MAJOR · fixed
+**The app icon was Flutter's own logo.**
+`ios/Runner/Assets.xcassets/AppIcon.appiconset/`,
+`android/app/src/main/res/mipmap-*/`, `web/icons/`
+
+Every icon in the repository was the default Flutter mark, which is
+third-party branding. Apple rejects it at review, and the Shipaton rules bar
+unlicensed third-party trademarks in submitted material, so the required
+1024x1024 submission asset could not have been the file that was there.
+
+**Fixed:** replaced with the project's own mark, the green arrow on the navy
+ground. The supplied artwork (`assets/brand/logo_source.png`, 547x525)
+already carries its own ground, so the master is that file centre-cropped
+square and scaled to 1024 and nothing else: no recolouring, no rebuilt
+background, no recentring. Master at `assets/brand/icon_master.png`, with
+the original kept beside it, and `tool/icon/build_icon.py` writes all 15 iOS
+sizes, 5 Android densities, 4 web icons, the favicon and a 1024 copy under
+`docs/submission/`.
+**Verified:** every output re-measured at its declared size and confirmed to
+carry no alpha channel; the mark read at 192, 120, 87, 60, 48 and 29px
+before it was committed.
+
+**Known limit:** the artwork is 547px, so the 1024 master is an upscale and
+is slightly soft against a true vector render at full size. It holds at
+every size the platforms actually display. If the mark is ever redrawn, the
+master should be re-exported from the vector rather than from this file.
+
+### A-17 · MINOR · fixed
+**Store screenshots were the wrong size.** `tool/screens/capture_test.dart`
+
+The capture rendered at a 390x844 logical size and saved at pixelRatio 2,
+giving 780x1688. Both stores and the submission form ask for 1179x2556, so
+every shot in the repository and every shot the tool could produce was
+unusable as a listing asset. **Fixed:** 393x852 at pixelRatio 3, which is
+1179x2556 exactly, with the two constants documented as having to move
+together.
+
 ### Correction to this report
 An earlier version said "no Android SDK in this environment". That was
 wrong and unverified: the SDK is at `%LOCALAPPDATA%\Android\Sdk`, with adb,
@@ -221,8 +259,9 @@ has been checked in this pass.
 - Endless and Custom Simulation validation (2.5, 2.6).
 - Nerve Profile axis correlation (2.4).
 - Store submission mechanics that need accounts or a Mac: sandbox purchase
-  runs (scripted in `docs/QA_CHECKLIST.md`), `flutter build ios`, icons,
-  screenshots, release signing.
+  runs (scripted in `docs/QA_CHECKLIST.md`), `flutter build ios`, release
+  signing. Icons and screenshots are no longer on this list: see A-16 and
+  A-17.
 
 ## Needs owner decision
 
@@ -248,30 +287,32 @@ has been checked in this pass.
 
 | | Count |
 |---|---|
-| Findings recorded | 11 |
+| Findings recorded | 13 |
 | Blockers fixed | 1 |
-| Majors fixed | 5 |
+| Majors fixed | 6 |
+| Minors fixed | 1 |
 | Minors noted | 1 |
 | Verified correct, no change | 3 |
-| Needs owner decision | 4 |
+| Needs owner decision | 3 |
 
 ### Needs owner decision, most important first
 
 1. **Bundled data licensing** — blocks publishing. Options in
    `docs/DATA_SOURCES.md`; recommendation is to re-import the equity levels
    from a redistributable source.
-2. **App icon** — still Flutter's default, which is third-party branding
-   Apple will reject.
-3. **Android release signing** — still the debug key.
-4. **A-4, the five levels where always-Hold scores 100.**
+2. **Android release signing** — still the debug key.
+3. **A-4, the five levels where always-Hold scores 100.**
+
+The app icon was third on this list. It is now A-16, fixed.
 
 ## Deliverables
 
 `AUDIT_REPORT.md` (this file) · `docs/VALIDATION_REPORT.md` ·
 `tool/validation/` · `docs/DATA_SOURCES.md` · `docs/QA_CHECKLIST.md` ·
 `docs/DEMO_SCRIPT.md` · `docs/STORE_LISTING.md` · `PRIVACY.md` ·
-`TERMS.md` · `CHANGELOG.md` · `.github/workflows/ci.yml` · updated
-`README.md`.
+`TERMS.md` · `CHANGELOG.md` · `.github/workflows/ci.yml` ·
+`tool/icon/build_icon.py`, `assets/brand/` and the icon set it writes ·
+`docs/submission/` · updated `README.md`.
 
 Not produced: `docs/SCORING.md` (the formula is documented in
 `discipline_score.dart` and measured in the validation report) and the

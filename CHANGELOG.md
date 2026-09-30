@@ -2,6 +2,29 @@
 
 Notable changes, newest first. Dates are the day the work landed on `main`.
 
+## Unreleased: submission assets (2026-09-30)
+
+### Added
+- **The HistoX app icon**, the green arrow mark on navy. The supplied
+  artwork is kept at `assets/brand/logo_source.png`; the master at
+  `assets/brand/icon_master.png` is that file centre-cropped square and
+  scaled to 1024, unaltered otherwise. `tool/icon/build_icon.py` writes
+  every iOS, Android and web size plus a 1024 copy under
+  `docs/submission/`.
+
+### Fixed
+- **The app icon was Flutter's own logo** everywhere: iOS, Android and web.
+  That is third-party branding, which Apple rejects at review and the
+  Shipaton rules bar from submitted material.
+- **Store screenshots were 780x1688**, not the 1179x2556 both stores and the
+  submission form ask for. `tool/screens/capture_test.dart` now renders at
+  393x852 and saves at pixelRatio 3, which is 1179x2556 exactly.
+- **A doc comment contradicted the code it described.** `RC_TEST_KEY` was
+  documented as "never ship a build made with it" while `current()`
+  deliberately permits it on web, where there is nothing to sell and a live
+  offering is what makes the paywall real. The comment now says which builds
+  may use it and why.
+
 ## Unreleased — submission prep (2026-09-26)
 
 ### Fixed

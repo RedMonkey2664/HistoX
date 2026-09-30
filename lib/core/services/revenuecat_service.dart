@@ -23,7 +23,12 @@ abstract final class RevenueCatKeys {
 
   /// RevenueCat's Test Store key. When set it wins on every platform, so the
   /// whole purchase flow can be exercised before any store is set up.
-  /// Development only — never ship a build made with it.
+  ///
+  /// Two places may use it, and [current] enforces the difference:
+  /// development builds, and the public **web** demo, which sells nothing and
+  /// needs a live offering to show a real paywall with real prices. A phone
+  /// release build may never use it, because that build goes to a store where
+  /// purchases have to be real.
   static const String test = String.fromEnvironment('RC_TEST_KEY');
 
   /// The entitlement every Pro gate checks (MONETIZATION.md).

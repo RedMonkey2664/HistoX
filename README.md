@@ -13,19 +13,19 @@ virtual capital, before it matters.
 shows real prices but can't place an order. The Daily Pivot pays in-app Discipline
 Points only.
 
-Built for RevenueCat Shipaton 2026.
+Built for **RevenueCat Shipaton 2026**, submitted to the **Next Gen award**.
 
 ## Judges: quick start
 
 Three ways to see it working, fastest first.
 
-1. **Open the web preview** — <https://revenue-cat-redmonkey2664s-projects.vercel.app>.
+1. **Watch the demo video** (90 seconds): <!-- VIDEO_URL -->
+   <https://youtu.be/REPLACE_ME>
+2. **Open the web preview**: <https://revenue-cat-redmonkey2664s-projects.vercel.app>.
    The first load after a deploy is slow while the CDN warms; give it a
    moment rather than reloading.
-2. **Run it** — `flutter pub get && flutter run`. No keys needed; the store
+3. **Run it**: `flutter pub get && flutter run`. No keys needed; the store
    reports itself as not connected and Pro stays locked.
-3. **Demo video** — not recorded yet; the shot list is in
-   [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 
 **A 60-second tour.** Simulator tab, tap the amber PLAY node, START RUN.
 Let the tape roll to the first halt and sit with it — that pause is the
@@ -38,6 +38,23 @@ to see the RevenueCat paywall.
 [revenuecat_service.dart](lib/core/services/revenuecat_service.dart) behind
 the [`PurchasesService`](lib/core/services/purchases_service.dart) seam;
 details under [RevenueCat integration](#revenuecat-integration).
+
+**Getting into the Pro content.** There is no promo code to hand out,
+because there is no store release to redeem one against. The web preview is
+built with the admin panel on (`--dart-define=HISTOX_ADMIN=true`), so every
+Pro level and the full Nerve Profile can be opened from it without a
+purchase. The paywall itself is live: it reads its offering, packages and
+prices from the RevenueCat dashboard through the Test Store, so the purchase
+flow can be exercised end to end without money changing hands. A phone
+release build refuses both the admin panel and the Test Store key on
+purpose, and [`admin_mode.dart`](lib/app/admin_mode.dart) says why.
+
+**What an evaluator might want to read first**, in order:
+[AUDIT_REPORT.md](AUDIT_REPORT.md) for what was found and fixed before
+submission, including a blocker where a release build would have given every
+user Pro for free; [ENGINE.md](ENGINE.md) for the simulator;
+[revenuecat_service.dart](lib/core/services/revenuecat_service.dart) for the
+purchase layer.
 
 ## Features
 
@@ -72,16 +89,21 @@ details under [RevenueCat integration](#revenuecat-integration).
   tools, shared by every screen that draws prices.
 - **Mascot:** a black kitten in a pearl-and-sapphire tiara on the loading screens, the
   first onboarding slide and the boot splash.
+- **App icon:** the HistoX mark, a green arrow climbing out of a fall, on the
+  navy ground. Master in `assets/brand/`; every platform size is written from
+  it by `tool/icon/build_icon.py`.
 
 **Not built yet:** the Daily Pivot's shared crowd backend (the crowd split is a
 labelled local placeholder — the app shows "too few votes" rather than
 inventing a percentage), the Pivot's 09:00 and 17:00 notifications, and
 real-time NSE/BSE through Kotak Neo.
 
-**Before it can be published:** the bundled level data's redistribution
-rights are unverified, the app icon is still Flutter's default, and Android
-release builds sign with the debug key. The full list, with what has been
-audited and what has not, is in [AUDIT_REPORT.md](AUDIT_REPORT.md).
+**Before it can go to a store:** the bundled level data's redistribution
+rights are unverified, and Android release builds still sign with the debug
+key. Neither blocks the Next Gen submission, which is judged on the video
+and the code rather than a store listing, but both are real and are recorded
+rather than quietly left out. The full list, with what has been audited and
+what has not, is in [AUDIT_REPORT.md](AUDIT_REPORT.md).
 
 ## Tech Stack
 
@@ -268,16 +290,20 @@ Left to right:
 5. The Nerve Profile share card
 
 Rendered from the app by `tool/screens/capture_test.dart`
-(`MN_SHOTS_DIR=build/screens flutter test tool/screens/capture_test.dart`). Level
-screens use real bundled level data. The progress, scores and run history are sample
-values.
+(`MN_SHOTS_DIR=build/screens flutter test tool/screens/capture_test.dart`), at
+1179x2556 with no device frame, which is the size the stores and the
+submission form ask for. Level screens use real bundled level data. The
+progress, scores and run history are sample values. Nothing here is a mockup.
 
 ## Demo
 
+- **Demo video (90 seconds):** <!-- VIDEO_URL -->
+  <https://youtu.be/REPLACE_ME>. Shot list in
+  [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md); every shot is the real app and
+  the numbers are whatever the run produced.
 - **Web preview:** <https://revenue-cat-redmonkey2664s-projects.vercel.app>. The product
   ships on iOS and Android; this is the same app as a web build, with the limits listed
   under [Running locally](#running-locally).
-- **Demo video:** not recorded yet.
 
 ## Legal
 

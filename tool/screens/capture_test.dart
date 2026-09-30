@@ -1,7 +1,12 @@
-// Visual QA: renders every wireframe screen with the app's real fonts and
-// writes PNGs, so the implementation can be compared against the artboards.
+// Visual QA and store screenshots: renders every wireframe screen with the
+// app's real fonts and writes PNGs, so the implementation can be compared
+// against the artboards and the store listing can be assembled from real
+// screens rather than mockups.
 //
 //   MN_SHOTS_DIR=build/screens flutter test tool/screens/capture_test.dart
+//
+// Output is 1179x2556 with no device frame, which is what App Store Connect,
+// Google Play and the Shipaton submission form all ask for. See [_phone].
 //
 // Not part of the test suite (it lives under tool/, which `flutter test`
 // does not scan by default) and it asserts nothing: it is a camera. The
@@ -48,7 +53,15 @@ import 'package:histox/features/simulator/engine/simulation_mode.dart';
 import 'package:histox/features/simulator/level/level_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const Size _phone = Size(390, 844);
+// iPhone 15 Pro logical size. Chosen so that the capture's pixelRatio of 3
+// lands on exactly 1179x2556, which is the store and Devpost screenshot
+// size — 393*3 = 1179, 852*3 = 2556. Changing either number without the
+// other silently produces shots the stores reject, so they move together.
+const Size _phone = Size(393, 852);
+
+/// The capture scale. With [_phone], the only value that yields 1179x2556.
+const double _captureScale = 3;
+
 final String _out = Platform.environment['MN_SHOTS_DIR'] ?? 'build/screens';
 
 Future<void> _loadFonts() async {
@@ -77,7 +90,7 @@ Future<void> _save(WidgetTester tester, String name) async {
   await tester.runAsync(() async {
     final RenderRepaintBoundary boundary =
         _frame.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-    final ui.Image image = await boundary.toImage(pixelRatio: 2);
+    final ui.Image image = await boundary.toImage(pixelRatio: _captureScale);
     final ByteData? png = await image.toByteData(
       format: ui.ImageByteFormat.png,
     );
