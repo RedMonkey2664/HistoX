@@ -116,6 +116,12 @@ class _HudAccordionState extends State<HudAccordion>
           ),
           SizeTransition(
             sizeFactor: curve,
+            // axisAlignment is deprecated in favour of alignment, which takes
+            // an AlignmentGeometry rather than a double. The equivalent value
+            // was not verifiable on a device before the submission deadline, so
+            // the migration is deferred rather than guessed at in an animation
+            // that could not be re-checked. See ROADMAP.md.
+            // ignore: deprecated_member_use
             axisAlignment: -1,
             child: Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
