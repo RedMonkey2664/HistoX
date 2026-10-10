@@ -1,0 +1,6 @@
+# web_dist/ is the prebuilt Flutter web bundle that Vercel serves (see
+# tool/publish_web.sh). It has to stay committed, but it is compiled output,
+# so keep it out of GitHub's language statistics. Without this the repo reads
+# as mostly JavaScript instead of Dart.
+web_dist/** linguist-generated=true
+web_dist/** linguist-vendored=true
